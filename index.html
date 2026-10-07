@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <!-- This line ensures it scales perfectly on your S25 screen -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Opethia Dice</title>
+  <style>
+    body {
+      background-color: #0f0f1b; /* Dark synthwave blue/black */
+      color: #00ffff; /* Neon cyan */
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      text-align: center;
+      padding: 20px;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      justify-content: center;
+      /* Prevents text highlighting when tapping fast */
+      user-select: none; 
+    }
+    h1 { 
+      color: #ff00ff; /* Neon pink */ 
+      text-transform: uppercase; 
+      letter-spacing: 2px; 
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 15px;
+      max-width: 400px;
+      margin: 0 auto;
+    }
+    button {
+      background-color: #1f1f3a;
+      color: #00ffff;
+      border: 2px solid #ff00ff;
+      border-radius: 12px;
+      padding: 20px;
+      font-size: 24px;
+      font-weight: bold;
+      cursor: pointer;
+      touch-action: manipulation; /* Removes tap delay on mobile */
+    }
+    button:active { 
+      background-color: #ff00ff; 
+      color: #fff; 
+    }
+    #result-box {
+      margin-top: 20px;
+      margin-bottom: 40px;
+      min-height: 120px;
+    }
+    #result { 
+      font-size: 90px; 
+      font-weight: bold; 
+      color: #fff; 
+      text-shadow: 0 0 15px #ff00ff; 
+    }
+    #label { 
+      font-size: 18px; 
+      color: #8892b0; 
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Opethia Dice</h1>
+  
+  <div id="result-box">
+    <div id="label">Awaiting roll...</div>
+    <div id="result">-</div>
+  </div>
+
+  <div class="grid">
+    <button onclick="roll(4)">d4</button>
+    <button onclick="roll(6)">d6</button>
+    <button onclick="roll(8)">d8</button>
+    <button onclick="roll(10)">d10</button>
+    <button onclick="roll(12)">d12</button>
+    <button onclick="roll(20)">d20</button>
+  </div>
+
+  <script>
+    function roll(sides) {
+      // Calculate the final result
+      const finalResult = Math.floor(Math.random() * sides) + 1;
+      document.getElementById('label').innerText = `Rolling d${sides}...`;
+      
+      let ticks = 0;
+      // This creates a fast "scrambling" number animation
+      const interval = setInterval(() => {
+        document.getElementById('result').innerText = Math.floor(Math.random() * sides) + 1;
+        document.getElementById('result').style.color = '#fff'; // Reset color
+        ticks++;
+        
+        // Stop animation after 10 ticks and show actual result
+        if (ticks > 10) {
+          clearInterval(interval);
+          document.getElementById('result').innerText = finalResult;
+          
+          // Highlight critical hits (rolling the max number) in bright cyan
+          if (finalResult === sides) {
+            document.getElementById('result').style.color = '#00ffff';
+            document.getElementById('label').innerText = 'CRITICAL!';
+          } else if (finalResult === 1 && sides === 20) {
+            document.getElementById('result').style.color = '#ff0000'; // Red for nat 1
+            document.getElementById('label').innerText = 'CRITICAL FAIL';
+          }
+        }
+      }, 30); // 30ms between animation frames
+    }
+  </script>
+</body>
+</html>
