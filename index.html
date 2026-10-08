@@ -130,4 +130,56 @@
       8: '<svg viewBox="0 0 100 100"><polygon points="50,10 90,50 50,90 10,50" fill="#1f1f3a" stroke="#00ffff" stroke-width="4" stroke-linejoin="round"/><line x1="10" y1="50" x2="90" y2="50" stroke="#00ffff" stroke-width="2"/></svg>',
       10: '<svg viewBox="0 0 100 100"><polygon points="50,10 85,45 50,90 15,45" fill="#1f1f3a" stroke="#00ffff" stroke-width="4" stroke-linejoin="round"/></svg>',
       12: '<svg viewBox="0 0 100 100"><polygon points="50,10 88,38 73,85 27,85 12,38" fill="#1f1f3a" stroke="#00ffff" stroke-width="4" stroke-linejoin="round"/></svg>',
-      20: '<svg viewBox="0 0 100 100"><polygon points="5
+      20: '<svg viewBox="0 0 100 100"><polygon points="50,5 93,25 93,75 50,95 7,75 7,25" fill="#1f1f3a" stroke="#00ffff" stroke-width="4" stroke-linejoin="round"/><polygon points="50,25 78,68 22,68" fill="none" stroke="#00ffff" stroke-width="2" stroke-linejoin="round"/><line x1="7" y1="25" x2="22" y2="68" stroke="#00ffff" stroke-width="2"/><line x1="93" y1="25" x2="78" y2="68" stroke="#00ffff" stroke-width="2"/><line x1="50" y1="5" x2="50" y2="25" stroke="#00ffff" stroke-width="2"/><line x1="50" y1="95" x2="50" y2="68" stroke="#00ffff" stroke-width="2"/></svg>'
+    };
+
+    function roll(sides) {
+      const finalResult = Math.floor(Math.random() * sides) + 1;
+      const resultBox = document.getElementById('result');
+      const label = document.getElementById('label');
+      const svgWrapper = document.getElementById('svg-wrapper');
+      
+      // Inject the correct shape and center the text for d4s
+      svgWrapper.innerHTML = diceSVGs[sides];
+      resultBox.className = (sides === 4) ? 'offset-d4' : 'offset-normal';
+      
+      label.innerText = `Rolling d${sides}...`;
+      label.style.color = '#8892b0';
+      resultBox.style.color = '#fff'; 
+      
+      // Start the 3D tumbling animation
+      svgWrapper.classList.add('tumbling');
+      
+      let ticks = 0;
+      const interval = setInterval(() => {
+        // Scramble the numbers while spinning
+        resultBox.innerText = Math.floor(Math.random() * sides) + 1;
+        ticks++;
+        
+        // Stop after ~600ms
+        if (ticks > 15) {
+          clearInterval(interval);
+          svgWrapper.classList.remove('tumbling'); // Stops the spin
+          resultBox.innerText = finalResult;
+          
+          // Check for Crits and Fails
+          if (finalResult === sides) {
+            resultBox.style.color = '#00ffff'; // Neon cyan for max damage/crits
+            label.innerText = 'CRITICAL HIT!';
+            label.style.color = '#00ffff';
+          } else if (finalResult === 1 && sides === 20) {
+            resultBox.style.color = '#ff0000'; // Red for nat 1
+            label.innerText = 'CRITICAL FAIL';
+            label.style.color = '#ff0000';
+          } else {
+            label.innerText = `Rolled a ${finalResult}`;
+          }
+        }
+      }, 40); 
+    }
+
+    // Initialize with a d20 shape on screen
+    document.getElementById('svg-wrapper').innerHTML = diceSVGs[20];
+  </script>
+</body>
+</html>
