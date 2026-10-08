@@ -2,13 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <!-- This line ensures it scales perfectly on your S25 screen -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Opethia Dice</title>
   <style>
     body {
-      background-color: #0f0f1b; /* Dark synthwave blue/black */
-      color: #00ffff; /* Neon cyan */
+      background-color: #0f0f1b; 
+      color: #00ffff; 
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       text-align: center;
       padding: 20px;
@@ -17,18 +16,71 @@
       flex-direction: column;
       height: 100vh;
       justify-content: center;
-      /* Prevents text highlighting when tapping fast */
       user-select: none; 
+      overflow: hidden;
     }
     h1 { 
-      color: #ff00ff; /* Neon pink */ 
+      color: #ff00ff; 
       text-transform: uppercase; 
       letter-spacing: 2px; 
+      margin-bottom: 30px;
     }
+    
+    /* The space where the 3D dice roll happens */
+    #dice-stage {
+      position: relative;
+      width: 160px;
+      height: 160px;
+      margin: 0 auto 40px auto;
+      perspective: 1000px; 
+    }
+
+    #svg-wrapper {
+      width: 100%;
+      height: 100%;
+      transform-style: preserve-3d;
+      filter: drop-shadow(0 0 10px rgba(0, 255, 255, 0.5));
+    }
+
+    /* The actual tumbling animation */
+    .tumbling {
+      animation: tumble 0.4s infinite linear;
+    }
+
+    @keyframes tumble {
+      0% { transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg); }
+      100% { transform: rotateX(360deg) rotateY(360deg) rotateZ(360deg); }
+    }
+
+    /* The number that sits on top of the die */
+    #result { 
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 55px; 
+      font-weight: bold; 
+      color: #fff; 
+      text-shadow: 0 0 10px #000, 0 0 15px #ff00ff; 
+      z-index: 10;
+    }
+
+    /* Adjusts the number slightly up for the triangle d4 so it's centered visually */
+    .offset-d4 { margin-top: 10px; }
+    .offset-normal { margin-top: 0px; }
+
+    #label { 
+      font-size: 20px; 
+      color: #8892b0; 
+      margin-top: 15px;
+      font-weight: bold;
+      height: 24px;
+    }
+
     .grid {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 15px;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
       max-width: 400px;
       margin: 0 auto;
     }
@@ -37,30 +89,16 @@
       color: #00ffff;
       border: 2px solid #ff00ff;
       border-radius: 12px;
-      padding: 20px;
-      font-size: 24px;
+      padding: 15px 10px;
+      font-size: 20px;
       font-weight: bold;
       cursor: pointer;
-      touch-action: manipulation; /* Removes tap delay on mobile */
+      touch-action: manipulation; 
+      transition: background-color 0.1s;
     }
     button:active { 
       background-color: #ff00ff; 
       color: #fff; 
-    }
-    #result-box {
-      margin-top: 20px;
-      margin-bottom: 40px;
-      min-height: 120px;
-    }
-    #result { 
-      font-size: 90px; 
-      font-weight: bold; 
-      color: #fff; 
-      text-shadow: 0 0 15px #ff00ff; 
-    }
-    #label { 
-      font-size: 18px; 
-      color: #8892b0; 
     }
   </style>
 </head>
@@ -68,12 +106,14 @@
 
   <h1>Opethia Dice</h1>
   
-  <div id="result-box">
-    <div id="label">Awaiting roll...</div>
+  <div id="dice-stage">
+    <!-- The SVG shape will be injected here -->
+    <div id="svg-wrapper"></div>
     <div id="result">-</div>
   </div>
+  <div id="label">Awaiting roll...</div>
 
-  <div class="grid">
+  <div class="grid" style="margin-top: 30px;">
     <button onclick="roll(4)">d4</button>
     <button onclick="roll(6)">d6</button>
     <button onclick="roll(8)">d8</button>
@@ -83,34 +123,11 @@
   </div>
 
   <script>
-    function roll(sides) {
-      // Calculate the final result
-      const finalResult = Math.floor(Math.random() * sides) + 1;
-      document.getElementById('label').innerText = `Rolling d${sides}...`;
-      
-      let ticks = 0;
-      // This creates a fast "scrambling" number animation
-      const interval = setInterval(() => {
-        document.getElementById('result').innerText = Math.floor(Math.random() * sides) + 1;
-        document.getElementById('result').style.color = '#fff'; // Reset color
-        ticks++;
-        
-        // Stop animation after 10 ticks and show actual result
-        if (ticks > 10) {
-          clearInterval(interval);
-          document.getElementById('result').innerText = finalResult;
-          
-          // Highlight critical hits (rolling the max number) in bright cyan
-          if (finalResult === sides) {
-            document.getElementById('result').style.color = '#00ffff';
-            document.getElementById('label').innerText = 'CRITICAL!';
-          } else if (finalResult === 1 && sides === 20) {
-            document.getElementById('result').style.color = '#ff0000'; // Red for nat 1
-            document.getElementById('label').innerText = 'CRITICAL FAIL';
-          }
-        }
-      }, 30); // 30ms between animation frames
-    }
-  </script>
-</body>
-</html>
+    // Pure CSS/SVG geometries for the dice shapes
+    const diceSVGs = {
+      4: '<svg viewBox="0 0 100 100"><polygon points="50,15 90,85 10,85" fill="#1f1f3a" stroke="#00ffff" stroke-width="4" stroke-linejoin="round"/></svg>',
+      6: '<svg viewBox="0 0 100 100"><rect x="15" y="15" width="70" height="70" rx="10" fill="#1f1f3a" stroke="#00ffff" stroke-width="4"/></svg>',
+      8: '<svg viewBox="0 0 100 100"><polygon points="50,10 90,50 50,90 10,50" fill="#1f1f3a" stroke="#00ffff" stroke-width="4" stroke-linejoin="round"/><line x1="10" y1="50" x2="90" y2="50" stroke="#00ffff" stroke-width="2"/></svg>',
+      10: '<svg viewBox="0 0 100 100"><polygon points="50,10 85,45 50,90 15,45" fill="#1f1f3a" stroke="#00ffff" stroke-width="4" stroke-linejoin="round"/></svg>',
+      12: '<svg viewBox="0 0 100 100"><polygon points="50,10 88,38 73,85 27,85 12,38" fill="#1f1f3a" stroke="#00ffff" stroke-width="4" stroke-linejoin="round"/></svg>',
+      20: '<svg viewBox="0 0 100 100"><polygon points="5
